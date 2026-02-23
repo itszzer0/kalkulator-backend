@@ -5,8 +5,6 @@ import math
 
 # Создаём приложение
 app = FastAPI()
-
-# Разрешаем запросы с любого сайта (для теста)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,9 +24,9 @@ class LaminateData(BaseModel):
 
 @app.post("/calculate/laminate")
 def calculate_laminate(data: LaminateData):
-    """Расчёт количества ламината и стоимости"""
+
     room_area_m2 = (data.length * data.width)
-    plank_area_m2 = (data.plank_length * data.plank_width)
+    plank_area_m2 = (data.plank_length * data.plank_width) / 1_000_000
 
     raw_planks = room_area_m2 / plank_area_m2
     planks_needed = math.ceil(raw_planks * 1.05)
@@ -45,7 +43,7 @@ def calculate_laminate(data: LaminateData):
     }
 #====================================================================================
 
-# Тестовый эндпоинт для проверки связи
+#тест
 @app.get("/ping")
 def ping():
     return {"status": "ok", "message": "Сервер работает!"}
