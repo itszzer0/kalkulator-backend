@@ -27,8 +27,8 @@ class LaminateData(BaseModel):
 @app.post("/calculate/laminate")
 def calculate_laminate(data: LaminateData):
     """Расчёт количества ламината и стоимости"""
-    room_area_m2 = (data.length * data.width) / 1_000_000
-    plank_area_m2 = (data.plank_length * data.plank_width) / 1_000_000
+    room_area_m2 = (data.length * data.width)
+    plank_area_m2 = (data.plank_length * data.plank_width)
 
     raw_planks = room_area_m2 / plank_area_m2
     planks_needed = math.ceil(raw_planks * 1.05)
