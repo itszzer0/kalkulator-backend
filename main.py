@@ -13,7 +13,6 @@ app.add_middleware(
 )
 
 # === ЛАМИНАТ =======================================================
-
 class LaminateData(BaseModel):
     length: float
     width: float
@@ -21,25 +20,43 @@ class LaminateData(BaseModel):
     plank_width: float
     pack_quantity: int
     pack_price: float
+    installation_type: str
+
 
 @app.post("/calculate/laminate")
 def calculate_laminate(data: LaminateData):
+    import math
 
-    room_area_m2 = (data.length * data.width)
-    plank_area_m2 = (data.plank_length * data.plank_width) / 1_000_000
+    #процент и вычисления
+    waste_map = {
+        "straight": 0.05,  # прямая укладка — 5%
+        "diagonal": 0.10,  # диагональная — 10%
+        "herringbone": 0.15  # ёлочка — 15%
+    }
 
-    raw_planks = room_area_m2 / plank_area_m2
-    planks_needed = math.ceil(raw_planks * 1.05)
-
+    waste_percent = waste_map.get(data.installation_type, 0.05)
+    room_area = data.length * data.width
+    plank_area = (data.plank_length * data.plank_width) / 1_000_000
+    raw_planks = room_area / plank_area
+    planks_needed = math.ceil(raw_planks * (1 + waste_percent))
     packs_needed = math.ceil(planks_needed / data.pack_quantity)
     total_price = packs_needed * data.pack_price
 
+    type_names = {
+        "straight": "Прямая",
+        "diagonal": "Диагональная",
+        "herringbone": "Ёлочка"
+    }
+    display_name = type_names.get(data.installation_type, "Прямая")
+
     return {
+        "room_area": round(room_area, 2),
         "planks_needed": planks_needed,
         "packs_needed": packs_needed,
         "total_price": round(total_price, 2),
-        "room_area": round(room_area_m2, 2),
-        "message": f"Нужно {planks_needed} панелей, {packs_needed} упаковок, стоимость {total_price:.2f} руб."
+        "waste_percent": waste_percent * 100,
+        "installation_type": display_name,
+        "message": f"✅ {display_name} укладка: {planks_needed} панелей, {packs_needed} упаковок, {total_price:.2f} руб."
     }
 #
 # #== КРАСКА ============================================
