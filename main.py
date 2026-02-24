@@ -41,7 +41,60 @@ def calculate_laminate(data: LaminateData):
         "room_area": round(room_area_m2, 2),
         "message": f"Нужно {planks_needed} панелей, {packs_needed} упаковок, стоимость {total_price:.2f} руб."
     }
-#====================================================================================
+
+#== КРАСКА ============================================
+class PaintData(BaseModel):
+    length: float
+    width: float
+    layers: int
+    paint_type: str
+    can_volume: float
+    can_price: float
+
+@app.post("/calculate/paint")
+def calculate_paint(data: PaintData):
+
+    consumption_map = {
+        "acrylic": 10,
+        "latex": 12,
+        "silicone": 8,
+        "water": 9,
+        "enamel": 11
+    }
+
+    consumption = consumption_map.get(data.paint_type, 10)
+
+    area = data.length * data.width
+
+    total_liters = (area * data.layers) / consumption
+    total_liters = round(total_liters, 1)
+
+    import math
+    cans_needed = math.ceil(total_liters / data.can_volume)
+
+    total_price = cans_needed * data.can_price
+
+    paint_names = {
+        "acrylic": "Акриловая",
+        "latex": "Латексная",
+        "silicone": "Силиконовая",
+        "water": "Водно-дисперсионная",
+        "enamel": "Эмаль"
+    }
+    paint_name = paint_names.get(data.paint_type, "Неизвестный тип")
+
+    return {
+        "paint_type": paint_name,
+        "area": round(area, 2),
+        "layers": data.layers,
+        "total_liters": total_liters,
+        "cans_needed": cans_needed,
+        "total_price": round(total_price, 2),
+        "can_volume": data.can_volume
+    }
+#======================================
+
+
 
 #тест
 @app.get("/ping")
