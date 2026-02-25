@@ -106,6 +106,40 @@ def calculate_paint(data: PaintData):
         "total_price": round(total_price, 2),
         "message": f"{buckets_needed} ведро(а) по {data.bucket_volume} л, стоимость {total_price:.2f} руб."
     }
+# === ОБОИ =========================================================
+class WallpaperData(BaseModel):
+    wall_length: float
+    wall_height: float
+    has_opening: bool
+    opening_width: float
+    opening_height: float
+    roll_length: float
+    roll_width: float
+    roll_price: float
+
+@app.post("/calculate/wallpaper")
+def calculate_wallpaper(data: WallpaperData):
+    import math
+
+    wall_area = data.wall_length * data.wall_height
+
+    opening_area = 0
+    if data.has_opening and data.opening_width > 0 and data.opening_height > 0:
+        opening_area = data.opening_width * data.opening_height
+
+    net_area = wall_area - opening_area
+
+    roll_area = data.roll_length * data.roll_width
+
+    rolls_needed = math.ceil(net_area / roll_area)
+
+    total_price = rolls_needed * data.roll_price
+
+    return {
+        "net_area": round(net_area, 2),
+        "rolls_needed": rolls_needed,
+        "total_price": round(total_price, 2)
+    }
 # === КЛЕЙ =========================================================
 class GlueData(BaseModel):
     length: float
