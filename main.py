@@ -56,7 +56,7 @@ def calculate_laminate(data: LaminateData):
         "total_price": round(total_price, 2),
         "waste_percent": waste_percent * 100,
         "installation_type": display_name,
-        "message": f"✅ {display_name} укладка: {planks_needed} панелей, {packs_needed} упаковок, {total_price:.2f} руб."
+        "message": f"{display_name} укладка: {planks_needed} панелей, {packs_needed} упаковок, {total_price:.2f} руб."
     }
 # === КРАСКА ========================================================
 class PaintData(BaseModel):
@@ -104,9 +104,40 @@ def calculate_paint(data: PaintData):
         "total_liters": total_liters,
         "buckets_needed": buckets_needed,
         "total_price": round(total_price, 2),
-        "message": f"✅ {buckets_needed} ведро(а) по {data.bucket_volume} л, стоимость {total_price:.2f} руб."
+        "message": f"{buckets_needed} ведро(а) по {data.bucket_volume} л, стоимость {total_price:.2f} руб."
     }
-#================================
+# === КЛЕЙ =========================================================
+class GlueData(BaseModel):
+    length: float
+    width: float
+    consumption: float      # расход клея (кг/м² на 1 мм слоя)
+    thickness: float
+    pack_weight: float
+    pack_price: float
+
+@app.post("/calculate/glue")
+def calculate_glue(data: GlueData):
+    import math
+
+    area = data.length * data.width
+
+    real_consumption = data.consumption * data.thickness
+
+    total_kg = area * real_consumption
+    total_kg = round(total_kg, 1)
+
+    packs_needed = math.ceil(total_kg / data.pack_weight)
+
+    total_price = packs_needed * data.pack_price
+
+    return {
+        "area": round(area, 2),
+        "total_kg": total_kg,
+        "packs_needed": packs_needed,
+        "total_price": round(total_price, 2),
+        "message": f"Нужно {packs_needed} упаковок, стоимость {total_price:.2f} руб."
+    }
+
 
 #тест
 @app.get("/ping")
