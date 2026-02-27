@@ -207,6 +207,53 @@ def calculate_tile(data: TileData):
         "packs_needed": packs_needed,
         "total_price": round(total_price, 2)
     }
+# === ЗАТИРКА =======================================================
+
+class GroutData(BaseModel):
+    length: float           # длина поверхности (м)
+    width: float            # ширина поверхности (м)
+    tile_length_cm: float   # длина плитки (см)
+    tile_width_cm: float    # ширина плитки (см)
+    pack_weight: float      # масса затирки в упаковке (кг)
+    pack_price: float       # стоимость упаковки (руб)
+
+@app.post("/calculate/grout")
+def calculate_grout(data: GroutData):
+    import math
+
+    area = data.length * data.width
+
+    tile_length_m = data.tile_length_cm / 100
+    tile_width_m = data.tile_width_cm / 100
+
+    tile_perimeter = 2 * (tile_length_m + tile_width_m)
+
+    tiles_per_sqm = 1 / (tile_length_m * tile_width_m)
+
+    joint_length_per_sqm = tiles_per_sqm * tile_perimeter
+
+    total_joint_length = joint_length_per_sqm * area
+
+    joint_thickness_m = 0.002
+    joint_depth_m = 0.002
+    grout_density = 1500
+
+    grout_volume = total_joint_length * joint_thickness_m * joint_depth_m
+
+    grout_weight = grout_volume * grout_density
+    grout_weight = math.ceil(grout_weight * 10) / 10
+
+    packs_needed = math.ceil(grout_weight / data.pack_weight)
+
+    total_price = packs_needed * data.pack_price
+
+    return {
+        "area": round(area, 2),
+        "grout_weight": round(grout_weight, 1),
+        "packs_needed": packs_needed,
+        "total_price": round(total_price, 2)
+    }
+
 
 #тест
 @app.get("/ping")
@@ -216,5 +263,5 @@ def ping():
 # Для запуска: uvicorn main:app --reload
 
 #git add .
-#git commit -m "описание изменений"
+#git commit -m ""
 #git push
