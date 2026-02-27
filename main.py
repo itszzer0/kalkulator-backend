@@ -29,9 +29,9 @@ def calculate_laminate(data: LaminateData):
 
     #процент и вычисления
     waste_map = {
-        "straight": 0.05,  # прямая укладка — 5%
-        "diagonal": 0.10,  # диагональная — 10%
-        "herringbone": 0.15  # ёлочка — 15%
+        "straight": 0.05,
+        "diagonal": 0.10,
+        "herringbone": 0.15
     }
 
     waste_percent = waste_map.get(data.installation_type, 0.05)
@@ -144,7 +144,7 @@ def calculate_wallpaper(data: WallpaperData):
 class GlueData(BaseModel):
     length: float
     width: float
-    consumption: float      # расход клея (кг/м² на 1 мм слоя)
+    consumption: float
     thickness: float
     pack_weight: float
     pack_price: float
@@ -168,10 +168,45 @@ def calculate_glue(data: GlueData):
         "area": round(area, 2),
         "total_kg": total_kg,
         "packs_needed": packs_needed,
-        "total_price": round(total_price, 2),
-        "message": f"Нужно {packs_needed} упаковок, стоимость {total_price:.2f} руб."
+        "total_price": round(total_price, 2)
     }
+# === ПЛИТКА ========================================================
+class TileData(BaseModel):
+    length: float
+    width: float
+    tile_length_cm: float
+    tile_width_cm: float
+    tile_gap_mm: float
+    pack_quantity: int
+    pack_price: float
 
+@app.post("/calculate/tile")
+def calculate_tile(data: TileData):
+    import math
+
+    tile_length_m = data.tile_length_cm / 100
+    tile_width_m = data.tile_width_cm / 100
+
+    gap_m = data.tile_gap_mm / 1000
+
+    area = data.length * data.width
+
+    tiles_in_length = math.ceil(data.length / (tile_length_m + gap_m))
+
+    tiles_in_width = math.ceil(data.width / (tile_width_m + gap_m))
+
+    tiles_needed = tiles_in_length * tiles_in_width
+
+    packs_needed = math.ceil(tiles_needed / data.pack_quantity)
+
+    total_price = packs_needed * data.pack_price
+
+    return {
+        "area": round(area, 2),
+        "tiles_needed": tiles_needed,
+        "packs_needed": packs_needed,
+        "total_price": round(total_price, 2)
+    }
 
 #тест
 @app.get("/ping")
