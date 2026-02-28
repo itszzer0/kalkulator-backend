@@ -255,6 +255,119 @@ def calculate_grout(data: GroutData):
     }
 
 
+# === ПОБЕЛКА =======================================================
+class WhitewashData(BaseModel):
+    length: float
+    width: float
+    thickness: float
+    whitewash_type: str
+    pack_weight: float
+    pack_price: float
+
+@app.post("/calculate/whitewash")
+def calculate_whitewash(data: WhitewashData):
+    import math
+
+    consumption_map = {
+        "lime": 0.5,
+        "chalk": 0.6
+    }
+
+    consumption_per_mm = consumption_map.get(data.whitewash_type, 0.5)
+
+    area = data.length * data.width
+
+    consumption = consumption_per_mm * data.thickness
+
+    total_kg = area * consumption
+    total_kg = math.ceil(total_kg * 10) / 10
+
+    packs_needed = math.ceil(total_kg / data.pack_weight)
+
+    total_price = packs_needed * data.pack_price
+
+    type_names = {
+        "lime": "Известковая",
+        "chalk": "Меловая"
+    }
+    type_name = type_names.get(data.whitewash_type, "Неизвестный тип")
+
+    return {
+        "area": round(area, 2),
+        "thickness": data.thickness,
+        "whitewash_type": type_name,
+        "total_kg": total_kg,
+        "packs_needed": packs_needed,
+        "total_price": round(total_price, 2)
+    }
+# === ШТУКАТУРКА ====================================================
+class PlasterData(BaseModel):
+    length: float
+    width: float
+    thickness: float
+    consumption_per_10mm: float
+    pack_weight: float
+    pack_price: float
+
+@app.post("/calculate/plaster")
+def calculate_plaster(data: PlasterData):
+    import math
+
+    area = data.length * data.width
+
+    consumption_per_mm = data.consumption_per_10mm / 10
+
+    consumption_for_thickness = consumption_per_mm * data.thickness
+
+    total_kg = area * consumption_for_thickness
+    total_kg = math.ceil(total_kg * 10) / 10
+
+    packs_needed = math.ceil(total_kg / data.pack_weight)
+
+    total_price = packs_needed * data.pack_price
+
+    return {
+        "area": round(area, 2),
+        "thickness": data.thickness,
+        "consumption_per_10mm": data.consumption_per_10mm,
+        "total_kg": total_kg,
+        "packs_needed": packs_needed,
+        "total_price": round(total_price, 2)
+    }
+# === ШПАКЛЁВКА ====================================================
+class PuttyData(BaseModel):
+    length: float
+    width: float
+    thickness: float
+    consumption_per_mm: float
+    pack_weight: float
+    pack_price: float
+
+@app.post("/calculate/putty")
+def calculate_putty(data: PuttyData):
+    import math
+
+    area = data.length * data.width
+
+    consumption_for_thickness = data.consumption_per_mm * data.thickness
+
+    total_kg = area * consumption_for_thickness
+    total_kg = math.ceil(total_kg * 10) / 10
+
+    packs_needed = math.ceil(total_kg / data.pack_weight)
+
+    total_price = packs_needed * data.pack_price
+
+    return {
+        "area": round(area, 2),
+        "thickness": data.thickness,
+        "consumption_per_mm": data.consumption_per_mm,
+        "total_kg": total_kg,
+        "packs_needed": packs_needed,
+        "total_price": round(total_price, 2)
+    }
+
+
 #тест
 @app.get("/ping")
 def ping():
